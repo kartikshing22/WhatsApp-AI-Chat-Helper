@@ -1,0 +1,22 @@
+# WhatsApp AI Chat Helper - Dependencies
+
+# Web Automation
+playwright>=1.40.0
+
+# LLM Integration
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langchain-anthropic>=0.1.0
+langchain-google-genai>=0.0.6
+
+# Alternative LangChain imports (for compatibility)
+openai>=1.0.0
+anthropic>=0.7.0
+google-generativeai>=0.3.0
+
+# Environment Management
+python-dotenv>=1.0.0
+
+# Utilities
+typing-extensions>=4.0.0
+
