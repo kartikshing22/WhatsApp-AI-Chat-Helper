@@ -23,7 +23,7 @@ An intelligent desktop automation application that uses AI to generate and send 
 ### 1. Clone or Navigate to Project
 
 ```bash
-cd Whatsapp-Helper
+cd WhatsApp-AI-Chat-Helper
 ```
 
 ### 2. Install Dependencies
@@ -56,7 +56,7 @@ OPENAI_API_KEY=your_actual_api_key_here
 ### 5. Run the Application
 
 ```bash
-python app/main.py
+python main.py
 ```
 
 ## ⚙️ Configuration
@@ -119,6 +119,7 @@ Whatsapp-Helper/
 
 The AI helper starts in **disabled** mode. To enable it:
 
+- type enable in CLI (Command line)
 - The application will check for new messages periodically
 - When a new incoming message is detected, it will generate a reply
 - If `HUMAN_APPROVAL=true`, you'll be prompted to approve the reply
@@ -236,30 +237,23 @@ For issues or questions:
 
 
 Flow =>
+
 main()
  └── WhatsAppAIChatHelper()
        └── run()
-             └── initialize()
-                   ├── Config.validate()
-                   ├── bot.start()
-                   │      ├── launch browser
-                   │      ├── open WhatsApp Web
-                   │      └── wait for login
-                   └── pipeline.is_ready()
+             ├── initialize()
+             │     ├── Config.validate()
+             │     ├── bot.start()
+             │     │      ├── launch browser (Playwright)
+             │     │      ├── open WhatsApp Web
+             │     │      ├── wait for QR login
+             │     │      └── load persistent session
+             │     └── pipeline.is_ready()
 
-             LOOP every 2s:
-               ├── check CLI commands
-               ├── if ai_enabled:
-               │      └── check_new_messages()
-               │             ├── get_last_messages()
-               │             └── detect new incoming message
-               └── if new_message:
-                      └── process_new_message()
-                             ├── get_last_messages()
-                             ├── pipeline.generate_reply()
-                             ├── human approval?
-                             └── bot.send_message()
+             ├── start background tasks
+             │     ├── handle_cli()        (Task 1 - waits for commands)
+             │     └── monitor_messages()   (Task 2 - runs every 2 sec)
 
-on quit:
- └── cleanup()
-       └── bot.close()
+             ├── wait for any task to stop
+             └── cleanup()
+                   └── bot.close()
