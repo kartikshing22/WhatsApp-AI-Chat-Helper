@@ -41,7 +41,7 @@ class WhatsAppBot:
                 user_data_dir=str(context_path),
                 headless=Config.BROWSER_HEADLESS,
                 args=['--disable-blink-features=AutomationControlled'],
-                viewport={'width': 1280, 'height': 720},
+                viewport={'width': 1280, 'height': 800},
                 timeout=Config.BROWSER_TIMEOUT
             )
             

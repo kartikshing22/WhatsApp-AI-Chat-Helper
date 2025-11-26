@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp AI Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-card h2 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .status-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .status-value {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .status-value.active {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-value.inactive {
+            background: #ef4444;
+            color: white;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        button {
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-toggle {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-toggle:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-toggle.active {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(245, 101, 101, 0.4);
+        }
+
+        .loading {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        button.loading-state .loading {
+            display: inline-block;
+        }
+
+        button.loading-state span {
+            opacity: 0.7;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .notification.success {
+            background: #10b981;
+        }
+
+        .notification.error {
+            background: #ef4444;
+        }
+
+        .notification.info {
+            background: #3b82f6;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .status-indicators {
+                flex-direction: column;
+            }
+
+            .status-item {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 WhatsApp AI Manager</h1>
+            <p>Control your AI-powered WhatsApp assistant</p>
+        </div>
+
+        <div class="status-card">
+            <h2>System Status</h2>
+            <div class="status-indicators">
+                <div class="status-item">
+                    <div class="status-label">AI Status</div>
+                    <div class="status-value" id="ai-status">
+                        <span class="status-dot"></span>
+                        <span id="ai-status-text">Checking...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">App Status</div>
+                    <div class="status-value" id="app-status">
+                        <span class="status-dot"></span>
+                        <span id="app-status-text">Checking...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-start" onclick="start()" id="start-btn">
+                <span>🚀</span>
+                <span>Start WhatsApp</span>
+                <div class="loading"></div>
+            </button>
+            
+            <button class="btn-toggle" onclick="toggleAI()" id="toggle-btn">
+                <span>🤖</span>
+                <span id="toggle-text">Toggle AI</span>
+                <div class="loading"></div>
+            </button>
+            
+            <button class="btn-stop" onclick="stop()" id="stop-btn">
+                <span>❌</span>
+                <span>Stop App</span>
+                <div class="loading"></div>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let statusInterval;
+
+        async function start() {
+            const btn = document.getElementById('start-btn');
+            btn.classList.add('loading-state');
+            btn.disabled = true;
+
+            try {
+                let r = await fetch("/start");
+                const data = await r.json();
+                
+                if (r.ok) {
+                    showNotification('WhatsApp started successfully!', 'success');
+                    updateStatus();
+                } else {
+                    showNotification(data.message || 'Failed to start WhatsApp', 'error');
+                }
+            } catch (error) {
+                showNotification('Error starting WhatsApp: ' + error.message, 'error');
+            } finally {
+                btn.classList.remove('loading-state');
+                btn.disabled = false;
+            }
+        }
+
+        async function toggleAI() {
+            const btn = document.getElementById('toggle-btn');
+            btn.classList.add('loading-state');
+            btn.disabled = true;
+
+            try {
+                let r = await fetch("/toggle_ai");
+                const data = await r.json();
+                
+                if (r.ok) {
+                    showNotification(
+                        data.ai_enabled ? 'AI Enabled ✅' : 'AI Disabled ❌',
+                        'info'
+                    );
+                    updateStatus();
+                } else {
+                    showNotification('Failed to toggle AI', 'error');
+                }
+            } catch (error) {
+                showNotification('Error toggling AI: ' + error.message, 'error');
+            } finally {
+                btn.classList.remove('loading-state');
+                btn.disabled = false;
+            }
+        }
+
+        async function stop() {
+            const btn = document.getElementById('stop-btn');
+            btn.classList.add('loading-state');
+            btn.disabled = true;
+
+            try {
+                let r = await fetch("/stop");
+                const data = await r.json();
+                
+                if (r.ok) {
+                    showNotification('App stopped successfully', 'info');
+                    updateStatus();
+                } else {
+                    showNotification(data.message || 'Failed to stop app', 'error');
+                }
+            } catch (error) {
+                showNotification('Error stopping app: ' + error.message, 'error');
+            } finally {
+                btn.classList.remove('loading-state');
+                btn.disabled = false;
+            }
+        }
+
+        async function updateStatus() {
+            try {
+                let res = await fetch("/status");
+                let data = await res.json();
+                
+                // Update AI Status
+                const aiStatus = document.getElementById('ai-status');
+                const aiStatusText = document.getElementById('ai-status-text');
+                if (data.ai_enabled) {
+                    aiStatus.className = 'status-value active';
+                    aiStatusText.textContent = 'Enabled';
+                } else {
+                    aiStatus.className = 'status-value inactive';
+                    aiStatusText.textContent = 'Disabled';
+                }
+
+                // Update App Status
+                const appStatus = document.getElementById('app-status');
+                const appStatusText = document.getElementById('app-status-text');
+                if (data.running) {
+                    appStatus.className = 'status-value active';
+                    appStatusText.textContent = 'Running';
+                } else {
+                    appStatus.className = 'status-value inactive';
+                    appStatusText.textContent = 'Stopped';
+                }
+
+                // Update toggle button text
+                const toggleText = document.getElementById('toggle-text');
+                if (data.ai_enabled) {
+                    toggleText.textContent = 'Disable AI';
+                    document.getElementById('toggle-btn').classList.add('active');
+                } else {
+                    toggleText.textContent = 'Enable AI';
+                    document.getElementById('toggle-btn').classList.remove('active');
+                }
+
+            } catch (error) {
+                console.error('Error updating status:', error);
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // Remove existing notification if any
+            const existing = document.querySelector('.notification');
+            if (existing) {
+                existing.remove();
+            }
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Update status immediately and then every 2 seconds
+        updateStatus();
+        statusInterval = setInterval(updateStatus, 2000);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (statusInterval) {
+                clearInterval(statusInterval);
+            }
+        });
+    </script>
+</body>
+</html>
