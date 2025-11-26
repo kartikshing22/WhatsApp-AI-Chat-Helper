@@ -26,7 +26,9 @@ class LLMPipeline:
         """Initialize LLM pipeline with configured provider."""
         self.llm = self._create_llm()
         self.safety_filter = SafetyFilter()
-        self._setup_prompt_template()
+        self.agent_type = "default"
+        # self._setup_prompt_template()
+        self.set_agent_type("default")
     
     def _create_llm(self):
         """Create LLM instance based on configured provider."""
@@ -65,23 +67,71 @@ class LLMPipeline:
         
         else:
             raise ValueError(f"Unsupported LLM provider: {provider}")
+    def set_agent_type(self, agent_type: str):
+        """Set the agent type and update prompt template."""
+        self.agent_type = agent_type
+        self.setup_prompt_template()
     
-    def _setup_prompt_template(self):
+    def setup_prompt_template(self):
         """Setup prompt template for generating replies."""
-        self.system_prompt = f"""You are a helpful AI assistant that generates natural, {Config.RESPONSE_TONE} WhatsApp messages.
+        if self.agent_type == "default":
+            self.system_prompt = f"""You are a helpful AI assistant that generates natural, {Config.RESPONSE_TONE} WhatsApp messages.
 
-Guidelines:
-- Be natural, conversational, and contextually appropriate
-- Match the tone and style of the conversation
-- Keep responses concise (under {Config.MAX_RESPONSE_LENGTH} characters)
-- Be respectful and appropriate
-- Do not use explicit language or offensive content
-- Use hindi and english both language if the chat is in hindi
-- Do not use explicit emojis
-- Respond as if you are the person in the conversation
+            Guidelines:
+            - Be natural, conversational, and contextually appropriate
+            - Match the tone and style of the conversation
+            - Keep responses concise (under {Config.MAX_RESPONSE_LENGTH} characters)
+            - Be respectful and appropriate
+            - Do not use explicit language or offensive content
+            - Use hindi and english both language if the chat is in hindi
+            - Do not use explicit emojis
+            - Respond as if you are the person in the conversation
 
-Generate a single, natural reply based on the chat history provided."""
+            Generate a single, natural reply based on the chat history provided."""
+        elif self.agent_type == "friendly":
+            self.system_prompt = f"""You are a AI assistant that generates Friendly Abusive,natural funny WhatsApp messages.
+
+            Guidelines:
+            - Use naughty,friendly,abusive friendly language and tone
+            - Keep responses concise (under {Config.MAX_RESPONSE_LENGTH} characters)
+           
+            - use slang or colloquial expressions
+            - Use hindi and english both language if the chat is in hindi
+            - Do not use explicit emojis
+            - Respond as if you are the person in the conversation
+
+            Generate a single, reply based on the chat history provided."""
+        elif self.agent_type == "flirty":
+            self.system_prompt = f"""You are a AI assistant that generates Friendly ,naughty,romantic,vulagar,natural funny WhatsApp messages.
+
+            Guidelines:
+            - Use Friendly ,naughty,romantic,vulagar,natural language and tone
+            - Keep responses concise (under {Config.MAX_RESPONSE_LENGTH} characters)
+            - Use hindi and english both language if the chat is in hindi
+            - Do not use explicit emojis
+            - Respond as if you are the person in the conversation
+
+            Generate a single, reply based on the chat history provided."""
+        else:
+            # Default fallback - handle directly to avoid recursion
+            logger.warning(f"Unknown agent type: {self.agent_type}, using default")
+            self.agent_type = "default"
+            # Use default prompt
+            self.system_prompt = f"""You are a helpful AI assistant that generates natural, {Config.RESPONSE_TONE} WhatsApp messages.
+
+            Guidelines:
+            - Be natural, conversational, and contextually appropriate
+            - Match the tone and style of the conversation
+            - Keep responses concise (under {Config.MAX_RESPONSE_LENGTH} characters)
+            - Be respectful and appropriate
+            - Do not use explicit language or offensive content
+            - Use hindi and english both language if the chat is in hindi
+            - Do not use explicit emojis
+            - Respond as if you are the person in the conversation
+
+            Generate a single, natural reply based on the chat history provided."""
         
+        logger.info(f"Prompt template updated for agent type: {self.agent_type}")
         self.prompt_template = ChatPromptTemplate.from_messages([
             ("system", self.system_prompt),
             ("human", "Chat History:\n{chat_history}\n\nGenerate a natural reply:"),

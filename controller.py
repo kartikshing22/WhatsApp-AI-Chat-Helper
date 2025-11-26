@@ -56,6 +56,21 @@ class WhatsAppAIChatHelper:
             print("⚠️  Warning: App is not running. Please start the app first.")
         return self.ai_enabled
     
+    def set_agent_type(self, agent_type: str):
+        """Set the agent type for the AI pipeline."""
+        valid_types = ["default", "friendly", "flirty"]
+        if agent_type not in valid_types:
+            raise ValueError(f"Invalid agent type. Must be one of: {valid_types}")
+        
+        self.pipeline.set_agent_type(agent_type)
+        logger.info(f"Agent type set to: {agent_type}")
+        print(f"🎭 Agent type changed to: {agent_type}")
+        return agent_type
+    
+    def get_agent_type(self):
+        """Get the current agent type."""
+        return self.pipeline.agent_type
+    
     async def process_new_message(self):
         """Process new incoming message and generate reply."""
         try:
@@ -316,8 +331,17 @@ class AppController:
     def toggle_ai(self):
         return self.app.toggle_ai()
 
+    def set_agent_type(self, agent_type: str):
+        """Set the agent type for the AI pipeline."""
+        return self.app.set_agent_type(agent_type)
+    
+    def get_agent_type(self):
+        """Get the current agent type."""
+        return self.app.get_agent_type()
+
     def get_status(self):
         return {
             "ai_enabled": self.app.ai_enabled,
-            "running": self.app.running
+            "running": self.app.running,
+            "agent_type": self.app.get_agent_type()
         }

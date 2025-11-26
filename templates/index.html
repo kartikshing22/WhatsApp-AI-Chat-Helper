@@ -87,6 +87,56 @@
             min-width: 140px;
         }
 
+        .agent-type-selector {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .agent-type-selector h2 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .agent-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 500;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+
+        .agent-select:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .agent-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .agent-type-info {
+            margin-top: 10px;
+            font-size: 0.85em;
+            color: #666;
+            font-style: italic;
+        }
+
         .status-label {
             font-size: 0.9em;
             color: #666;
@@ -323,6 +373,16 @@
             </div>
         </div>
 
+        <div class="agent-type-selector">
+            <h2>🎭 Agent Type</h2>
+            <select class="agent-select" id="agent-type-select" onchange="setAgentType()">
+                <option value="default">Default - Professional & Respectful</option>
+                <option value="friendly">Friendly - Casual & Fun</option>
+                <option value="flirty">Flirty - Romantic & Playful</option>
+            </select>
+            <div class="agent-type-info" id="agent-type-info">Select an agent type to change AI behavior</div>
+        </div>
+
         <div class="button-group">
             <button class="btn-start" onclick="start()" id="start-btn">
                 <span>🚀</span>
@@ -456,8 +516,53 @@
                     document.getElementById('toggle-btn').classList.remove('active');
                 }
 
+                // Update agent type selector
+                const agentSelect = document.getElementById('agent-type-select');
+                const agentInfo = document.getElementById('agent-type-info');
+                if (data.agent_type) {
+                    agentSelect.value = data.agent_type;
+                    
+                    // Update info text based on agent type
+                    const agentInfoTexts = {
+                        'default': 'Professional, respectful, and contextually appropriate responses',
+                        'friendly': 'Casual, fun, and friendly responses with slang',
+                        'flirty': 'Romantic, playful, and flirty responses'
+                    };
+                    agentInfo.textContent = agentInfoTexts[data.agent_type] || 'Select an agent type to change AI behavior';
+                }
+
             } catch (error) {
                 console.error('Error updating status:', error);
+            }
+        }
+
+        async function setAgentType() {
+            const select = document.getElementById('agent-type-select');
+            const agentType = select.value;
+            
+            try {
+                const response = await fetch("/set_agent_type", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ agent_type: agentType })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showNotification(`Agent type changed to: ${agentType}`, 'success');
+                    updateStatus();
+                } else {
+                    showNotification(data.message || 'Failed to set agent type', 'error');
+                    // Revert selection
+                    updateStatus();
+                }
+            } catch (error) {
+                showNotification('Error setting agent type: ' + error.message, 'error');
+                // Revert selection
+                updateStatus();
             }
         }
 

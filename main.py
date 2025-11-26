@@ -26,6 +26,17 @@ def toggle_ai():
 def status():
     return jsonify(controller.get_status())
 
+@app.route("/set_agent_type", methods=["POST"])
+def set_agent_type():
+    try:
+        from flask import request
+        data = request.get_json()
+        agent_type = data.get("agent_type", "default")
+        result = controller.set_agent_type(agent_type)
+        return jsonify({"status": "success", "agent_type": result})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route("/stop")
 def stop_app():
     try:
